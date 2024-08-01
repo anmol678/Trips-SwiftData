@@ -29,7 +29,7 @@ extension DataModel {
         let data = try? JSONEncoder().encode(newValue)
         UserDefaults.standard.set(data, forKey: UserDefaultsKey.unreadTripIdentifiers)
     }
-    
+
     /**
      Find the unread trip identifiers by parsing the history.
      */
@@ -75,50 +75,28 @@ extension DataModel {
     private func findTrips(in transactions: [DefaultHistoryTransaction]) -> (Set<Trip>, DefaultHistoryToken?) {
         let taskContext = ModelContext(modelContainer)
         var resultTrips: Set<Trip> = []
-        
         for transaction in transactions {
-            for change in transaction.changes where isLivingAccommodationChange(change: change) {
-                /**
-                 Fetch the trip using the model ID of the changed living accommodation.
-                 */
+            for change in transaction.changes {
                 let modelID = change.changedPersistentIdentifier
-                let fetchDescriptor = FetchDescriptor<Trip>(predicate: #Predicate {
-                    $0.livingAccommodation?.persistentModelID == modelID
+                let fetchDescriptor = FetchDescriptor<Trip>(predicate: #Predicate { trip in
+                    trip.livingAccommodation?.persistentModelID == modelID
                 })
-                if let matchedTrip = try? taskContext.fetch(fetchDescriptor).first {
-                    switch change {
-                    case .insert:
-                        resultTrips.insert(matchedTrip)
-                    case .update:
-                        resultTrips.update(with: matchedTrip)
-                    case .delete:
-                        resultTrips.remove(matchedTrip)
-                    default:
-                        break
-                    }
+                let fetchResults = try? taskContext.fetch(fetchDescriptor)
+                guard let matchedTrip = fetchResults?.first else {
+                    continue
+                }
+                switch change {
+                    case is any HistoryInsert<LivingAccommodation>:
+                    resultTrips.insert(matchedTrip)
+                    case is any HistoryUpdate<LivingAccommodation>:
+                    resultTrips.update(with: matchedTrip)
+                    case is any HistoryDelete<LivingAccommodation>:
+                    resultTrips.remove(matchedTrip)
+                default:
+                    break
                 }
             }
         }
         return (resultTrips, transactions.last?.token)
-    }
-    
-    private func isLivingAccommodationChange(change: HistoryChange) -> Bool {
-        switch change {
-        case .insert(let historyInsert):
-            if historyInsert is any HistoryInsert<LivingAccommodation> {
-                return true
-            }
-        case .update(let historyUpdate):
-            if historyUpdate is any HistoryUpdate<LivingAccommodation> {
-                return true
-            }
-        case .delete(let historyDelete):
-            if historyDelete is any HistoryDelete<LivingAccommodation> {
-                return true
-            }
-        default:
-            break
-        }
-        return false
     }
 }

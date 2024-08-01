@@ -13,7 +13,7 @@ struct EditLivingAccommodationsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    @State private var placeName = ""
+    @State private var name = ""
     @State private var address = ""
     @State private var isConfirmed = false
     
@@ -23,7 +23,7 @@ struct EditLivingAccommodationsView: View {
         TripForm {
             Section(header: Text("Name of Living Accommodation")) {
                 TripGroupBox {
-                    TextField(namePlaceholder, text: $placeName)
+                    TextField(namePlaceholder, text: $name)
                 }
             }
             
@@ -49,18 +49,18 @@ struct EditLivingAccommodationsView: View {
                     addLiving()
                     dismiss()
                 }
-                .disabled(placeName.isEmpty || address.isEmpty)
+                .disabled(name.isEmpty || address.isEmpty)
             }
         }
         .onAppear {
-            placeName = trip.livingAccommodation?.placeName ?? ""
+            name = trip.livingAccommodation?.name ?? ""
             address = trip.livingAccommodation?.address ?? ""
             isConfirmed = trip.livingAccommodation?.isConfirmed ?? false
         }
     }
 
     var namePlaceholder: String {
-        trip.livingAccommodation?.placeName ?? "Enter place name here…"
+        trip.livingAccommodation?.name ?? "Enter place name here…"
     }
     
     var addressPlaceholder: String {
@@ -71,11 +71,11 @@ struct EditLivingAccommodationsView: View {
         withAnimation {
             if let livingAccommodation = trip.livingAccommodation {
                 livingAccommodation.address = address
-                livingAccommodation.placeName = placeName
+                livingAccommodation.name = name
                 livingAccommodation.isConfirmed = isConfirmed
             } else {
                 let newLivingAccommodation = LivingAccommodation(address: address,
-                                                                 placeName: placeName,
+                                                                 name: name,
                                                                  isConfirmed: isConfirmed)
                 newLivingAccommodation.trip = trip
             }

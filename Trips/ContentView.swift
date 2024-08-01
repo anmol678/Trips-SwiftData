@@ -36,10 +36,6 @@ struct ContentView: View {
                     }
                 }
             }
-            #if os(macOS)
-            .navigationSplitViewColumnWidth(min: 200, ideal: 250)
-            #endif
-
         } detail: {
             if let selection = selection {
                 NavigationStack {
@@ -48,8 +44,7 @@ struct ContentView: View {
             }
         }
         .task {
-            let tripIdentifiers = await DataModel.shared.unreadTripIdentifiersInUserDefaults
-            unreadTripIdentifiers = tripIdentifiers
+//            unreadTripIdentifiers = await DataModel.shared.unreadTripIdentifiersInUserDefaults
         }
         .searchable(text: $searchText, placement: .sidebar)
         .sheet(isPresented: $showAddTrip) {
@@ -73,8 +68,7 @@ struct ContentView: View {
                     unreadTripIdentifiers += await DataModel.shared.findUnreadTripIdentifiers()
                 } else {
                     // Persist the unread trip identifiers for the next launch session.
-                    let tripIdentifiers = unreadTripIdentifiers
-                    await DataModel.shared.setUnreadTripIdentifiersInUserDefaults(tripIdentifiers)
+//                    await DataModel.shared.setUnreadTripIdentifiersInUserDefaults(unreadTripIdentifiers)
                 }
             }
         }
@@ -86,8 +80,7 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
             Task {
-                let tripIdentifiers = unreadTripIdentifiers
-                await DataModel.shared.setUnreadTripIdentifiersInUserDefaults(tripIdentifiers)
+                await DataModel.shared.setUnreadTripIdentifiersInUserDefaults(unreadTripIdentifiers)
             }
         }
         #endif
