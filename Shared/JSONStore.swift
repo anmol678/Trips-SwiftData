@@ -67,6 +67,10 @@ final class JSONStore: DataStore {
         for snapshot in request.deleted {
             serializedSnapshots[snapshot.persistentIdentifier] = nil
         }
+        
+        serializedSnapshots = serializedSnapshots.mapValues { snapshot in
+            snapshot.copy(persistentIdentifier: snapshot.persistentIdentifier, remappedIdentifiers: remappedIdentifiers)
+        }
       
         try self.write(serializedSnapshots)
         return DataStoreSaveChangesResult<DefaultSnapshot>(for: self.identifier, remappedIdentifiers: remappedIdentifiers)
