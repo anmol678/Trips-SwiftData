@@ -20,7 +20,9 @@ actor DataModel {
     nonisolated lazy var modelContainer: ModelContainer = {
         let modelContainer: ModelContainer
         do {
-            modelContainer = try ModelContainer(for: Trip.self)
+            let fileURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("trips_data")
+            let configuration = JSONStoreConfiguration(name: "trips_v1", schema: Schema([Trip.self]), fileURL: fileURL)
+            modelContainer = try ModelContainer(for: Trip.self, configurations: configuration)
         } catch {
             fatalError("Failed to create the model container: \(error)")
         }
